@@ -1,20 +1,36 @@
 import prismaClient from "../../prisma";
 
 class DetailUserService {
-  async execute(user_id: string) {
-    const user = await prismaClient.user.findFirst({
+  async execute(cnpj: string) {
+    const clientTable = await prismaClient.cliente.findFirst({
       where: {
-        id: user_id,
-      },
-      select: {
-        id: true,
-        shopname: true,
-        categoria: true,
-        email: true,
+        cnpj: cnpj,
       },
     });
 
-    return user;
+    if (clientTable) {
+      // SE FOR CLIENTE
+      return {
+        cnpj: cnpj,
+        categoria: "C",
+        razao_social: clientTable.razao_social,
+        email: clientTable.email,
+      };
+    } else {
+      //SE FOR REPRESENTANTE
+      const representateTable = await prismaClient.representante.findFirst({
+        where: {
+          cnpj: cnpj,
+        },
+      });
+
+      return {
+        cnpj: cnpj,
+        categoria: "R",
+        razao_social: representateTable.razao_social,
+        email: representateTable.email,
+      };
+    }
   }
 }
 
